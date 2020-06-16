@@ -1,4 +1,4 @@
-CAA Dissertation Project
+# CAA Dissertation Project
 
 This project deals with the College Art Association (CAA) dissertation roster, which has been published since 1963, first in print and then online only. This roster provides information about the changing shape of the field of art history over the past sixty years, through a collective profile of recent PhDs. Since 2004, the dissertation roster has been published by *caa.reviews* and is updated yearly. 
 
