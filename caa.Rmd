@@ -1,0 +1,219 @@
+---
+title: "caa"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Bringing in the data
+
+```{r}
+
+#Activate packages
+library(tidyverse)
+library(ggplot2)
+
+#Read in caaTOTAL_OR_Jun7.csv
+diss <- read.csv(file = "caaTOTAL_OR.csv")
+
+#Read in subjects.csv and join with dissertations data. 
+subjectcat <- read.csv(file = "subjects.csv")
+diss <- left_join(diss, subjectcat, by = "Subject")
+
+#Make a df of unique dissertations, eliminating duplicates.
+uniq_diss <- arrange(diss, desc(Year), desc(Last.Name), desc(First.Name))
+uniq_diss <- distinct(uniq_diss, Last.Name, First.Name, .keep_all = TRUE)
+
+```
+
+##Generating the Visualizations
+
+Each chunk provides the codes to generate one of the figures that was published in the caa.reviews article.
+
+##Figure 5 - Unique Dissertations by Year, 2004-2018
+
+This visualization explores how many unique dissertations were completed each year.
+
+```{r}
+
+#New df that calculates dissertations by year
+dissbyyear <- uniq_diss %>% 
+  group_by(Year) %>%
+  summarise(Freq = n())
+
+#Figure 5
+fig5 <- ggplot(data=dissbyyear, aes(x=Year, y=Freq, fill = Freq)) +
+  geom_bar(stat="identity") +
+  geom_text(aes(label=Freq), vjust = 2,color="white") +
+  theme(axis.text.x = element_text(angle = 90), axis.title.y = element_blank()) +
+  ggtitle("Unique Dissertations by Year, 2004-2018")
+
+#Print fig5
+fig5 + guides(fill=guide_legend(title="Range")) 
+
+```
+
+##Figure 6 - Unique Dissertations by Institution, 2004-2018
+
+This visualization looks at all seventy-six institutions and how many dissertations were completed at each over the 15-year period. 
+
+```{r}
+
+#New df that calculates dissertations by institution
+dissbyinst <- uniq_diss %>% 
+  group_by(Institution) %>%
+  summarise(Freq = n())
+
+#Figure 6
+fig6 <- ggplot(data=dissbyinst, aes(x=Institution, y=Freq, fill = Freq)) +
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90), axis.title.y = element_blank()) +
+   coord_flip() +
+  ggtitle("Unique Dissertations by Institution, 2004-2018")
+
+#Print fig6
+fig6 + guides(fill=guide_legend(title="Range"))  + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+```
+
+##Figure 7 - Institutions with 50 or more dissertations, 2004-2018
+
+This visualization streamlines the data that appeared in figure 6, by filtering only those institutions that completed 50 or more dissertations during the 15-year period.
+
+```{r}
+
+#New df that filters out the institutions that produced 50 or moredissertations during this time period.
+dissbyinst <- arrange(dissbyinst, desc(Institution), desc(Freq))
+HiFreqInst <- filter(dissbyinst, Freq > 49)
+
+#Figure 7
+fig7 <- ggplot(data=HiFreqInst, aes(x = Institution, y = Freq, fill = Freq)) +
+    geom_bar(stat = 'identity') +
+    coord_flip() +
+    geom_text(aes(label=Freq), nudge_y = -8, vjust = .5,color="white", size = 3) +
+  theme(axis.text.x = element_text(angle = 90), axis.title.y = element_blank()) +
+  ggtitle("Institutions with 50 or more dissertations, 2004-2018")
+
+#Print fig7
+fig7 + guides(fill=guide_legend(title="Range")) + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+```
+
+##Figure 8 - Primary Advisors of 15 or more dissertations, 2004-2018
+
+This visualization looks at primary advisors, of which there were 898 in total. It should be noted that some dissertations listed more than one advisor, up to four maximum. The first name listed was taken as the primary advisor in each case. It includes only those advisors who supervised 15 or more dissertations.
+
+```{r}
+
+#New df which isolates the top advisors of 15 or more dissertations from 2004 to 2018
+Freqs <- uniq_diss %>% 
+  group_by(Advisor.1, Institution) %>%
+  summarise(Freq = n())
+Freqs <- arrange(Freqs, desc(Freq))
+HiFreqs <- filter(Freqs, Freq > 14)
+
+#Because of the way that they are written (first initial and then last name, they need to be reordered alphabetically. Write HiFreqs to csv. write_csv(HiFreqs, "HiFreqs.csv")
+HiFreqsOrdered <- read.csv(file = "HiFreqsOrdered.csv")
+
+#Add ordinal numbers and read the csv back in as a new df in order to reorder the names on the y axis alphabetically.
+HiFreqsOrdered$Advisor.1 <- factor(HiFreqsOrdered$Advisor.1, levels = HiFreqsOrdered$Advisor.1[order(HiFreqsOrdered$Num)])
+
+#Figure 8
+fig8 <- ggplot(data = HiFreqsOrdered, aes(x= Advisor.1, y = Freq, fill = Institution)) +
+  geom_bar(stat = 'identity') +
+    coord_flip()+
+  geom_text(aes(label=Institution), nudge_y = -3, vjust = .5, color = "white", size = 3.5) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  ggtitle("Primary Advisors of 15 or more dissertations, 2004-2018")
+
+#Print fig8
+fig8 + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+
+```
+
+##Figure 9 - Top Terms in Art History Dissertations, 2014-2018
+
+For this visualization, all of the unique dissertation titles were analyzed for the most commonly appearing terms in them. Stopwords were removed and only those that were featured 50 times or more were included.
+
+```{r}
+
+#Activate packages
+library(tokenizers)
+library(dplyr)
+library(stringr)
+library(tidytext)
+library(tibble)
+library(tidyr)
+
+#Start by tokenizing
+analysis <- mutate(uniq_diss, word = tokenize_words(as.character(Title)))
+
+#Unnest tokens so that each word has its own row.
+analysis <- unnest(analysis, word)
+
+#Each word has its own row and is attached to the metadata.Calculate the words by frequency of occurrence.
+analysis2 <- analysis %>%
+  group_by(word)%>%
+  summarize(count = n()) %>%
+  arrange(-count)
+
+#Read in the stopword list
+stopwordlist <- stop_words %>%
+  filter(lexicon == "SMART") %>%
+  select(word)
+
+#Anti-join the stopword list with the dissertation terms to eliminate stopwords.
+analysis3 <- anti_join(analysis2, stopwordlist, by="word") %>%
+  arrange(-count) %>%
+  top_n(50)
+
+#Figure 9
+ggplot(analysis3, aes(x = word, y = count, color = word)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none") +
+  coord_flip() +
+   ggtitle("Top Terms in Art History Dissertations, 2014-2018")
+
+```
+
+##Figure 10
+
+```{r}
+
+#New df that includes only the chronological categories
+ChronologyOnly <- filter(diss, caaCAT == "Chronology")
+
+#Figure 10
+ggplot(ChronologyOnly, aes(x=Year, y=SubjectReconciled)) +
+   theme(axis.text.x = element_text(angle = 90), axis.title.y = element_blank()) +
+  geom_count()
+
+```
+
+##Figure 11
+
+```{r}
+
+#New df that includes only geographic fields
+GeographyOnly <- filter(diss, caaCAT == "Geographic")
+
+#Figure11
+ggplot(GeographyOnly, aes(x=Year, y=SubjectReconciled)) +
+   theme(axis.text.x = element_text(angle = 90), axis.title.y = element_blank()) +
+  geom_count()
+
+```
+
+##Figure 12
+
+```{r}
+
+#New df which includes only subject fields
+SubjectOnly <- filter(diss, caaCAT == "Subject")
+
+#Figure 12
+ggplot(SubjectOnly, aes(x=Year, y=SubjectReconciled)) +
+   theme(axis.text.x = element_text(angle = 90), axis.title.y = element_blank()) +
+  geom_count()
+
+```
