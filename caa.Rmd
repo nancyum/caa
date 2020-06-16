@@ -18,10 +18,6 @@ library(ggplot2)
 #Read in caaTOTAL_OR_Jun7.csv
 diss <- read.csv(file = "caaTOTAL_OR.csv")
 
-#Read in subjects.csv and join with dissertations data. 
-subjectcat <- read.csv(file = "subjects.csv")
-diss <- left_join(diss, subjectcat, by = "Subject")
-
 #Make a df of unique dissertations, eliminating duplicates.
 uniq_diss <- arrange(diss, desc(Year), desc(Last.Name), desc(First.Name))
 uniq_diss <- distinct(uniq_diss, Last.Name, First.Name, .keep_all = TRUE)
