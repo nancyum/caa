@@ -2,7 +2,7 @@
 
 This project deals with the College Art Association (CAA) dissertation roster, which has been published since 1963, first in print and then online only. This roster provides information about the changing shape of the field of art history over the past sixty years, through a collective profile of recent PhDs. Since 2004, the dissertation roster has been published by *caa.reviews* and is updated yearly. 
 
-Professor Ken Chiu of Binghamton University wrote the script, caa.py, which was used to scrape the data for completed dissertations from 2004 to 2018 [caa.reviews](http://www.caareviews.org/dissertations)
+Professor Ken Chiu of Binghamton University wrote the script, caa.py, which was used to scrape the data for completed dissertations from 2004 to 2018 in [caa.reviews](http://www.caareviews.org/dissertations).
 
 Nancy Um ran this script on March 29, 2020, which generated caa.csv. Some entries failed to populate due to formatting errors. The failed entries were saved separately. NU cleaned caa.csv with Open Refine, which resulted in the identification of a few more failed entries. NU generated a new file, which contained all of the failed entries, cleaned it, and then combined it with the entries in caa.csv. Subject areas were coded to classify some of the categories used for the dissertation roster, based on [CAA's standard breakdown](http://www.caareviews.org/about/dissertations).
 
