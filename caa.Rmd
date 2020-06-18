@@ -127,7 +127,7 @@ fig8 + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
 
 ```
 
-##Figure 9 - Top Terms in Art History Dissertations, 2014-2018
+##Figure 9 - Top Terms in Art History Dissertation Titles, 2014-2018
 
 For this visualization, all of the unique dissertation titles were analyzed for the most commonly appearing terms in them. Stopwords were removed and only those that were featured 50 times or more were included.
 
@@ -168,7 +168,7 @@ ggplot(analysis3, aes(x = word, y = count, color = word)) +
   geom_point() +
   theme(axis.text.x = element_text(angle = 90), axis.title.x = element_blank(), axis.title.y = element_blank(), legend.position = "none") +
   coord_flip() +
-   ggtitle("Top Terms in Art History Dissertations, 2014-2018")
+   ggtitle("Top Terms in Art History Dissertation Titles, 2014-2018")
 
 ```
 
