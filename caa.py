@@ -201,7 +201,7 @@ import csv
 rows = []
 failed = []
 # Python ranges are half-open.
-for y in range(2004, 2019):
+for y in range(2002, 2019):
     # print("Year: ", y)
     r, f = extract_dissertations_year(y)
     rows.extend(r)
